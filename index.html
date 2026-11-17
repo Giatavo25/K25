@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#0d1029" />
+  <title>Una carta mágica para ti ✨</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cinzel+Decorative:wght@400;700&family=IM+Fell+English:ital@0;1&family=Caveat:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="oscuro">
+  <!-- Fondo: estrellas y velas flotantes -->
+  <div id="estrellas" class="estrellas" aria-hidden="true"></div>
+  <div id="velasFlotantes" class="velas-flotantes" aria-hidden="true"></div>
+  <canvas id="fx"></canvas>
+
+  <!-- Texto de hechizo que aparece en pantalla -->
+  <div id="hechizo" class="hechizo" aria-live="polite"></div>
+
+  <!-- Música -->
+  <button id="btnMusica" class="btn-musica oculto" aria-label="Música">♪</button>
+  <audio id="audio" preload="auto"></audio>
+
+  <!-- ============ PANTALLA 1: EL CORAZÓN ============ -->
+  <section id="intro" class="pantalla activa">
+    <div class="intro-caja">
+      <p class="intro-pre">✦ solo para ✦</p>
+      <h1 class="nombre" data-nombre></h1>
+      <p id="msgCorazon" class="msg-corazon"></p>
+
+      <button id="corazon" class="corazon" aria-label="Toca el corazón">
+        <svg viewBox="0 0 32 29" aria-hidden="true">
+          <defs>
+            <linearGradient id="gOro" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#f6dc9c"/><stop offset=".5" stop-color="#d4a24c"/><stop offset="1" stop-color="#9c6a24"/>
+            </linearGradient>
+          </defs>
+          <path d="M16 28.5 13.7 26.4C5.6 19 0.5 14.4 0.5 8.7 0.5 4.1 4.1 0.5 8.7 0.5c2.6 0 5.1 1.2 6.7 3.1h1.2C18.2 1.7 20.7.5 23.3.5c4.6 0 8.2 3.6 8.2 8.2 0 5.7-5.1 10.3-13.2 17.7Z"/>
+        </svg>
+      </button>
+
+      <div class="barra"><div id="barraRelleno" class="barra-relleno"></div></div>
+      <p id="porcentaje" class="porcentaje">0%</p>
+    </div>
+  </section>
+
+  <!-- ============ PANTALLA 2: LA SORPRESA ============ -->
+  <main id="sorpresa" class="pantalla">
+
+    <!-- Lechuza mensajera -->
+    <div id="lechuza" class="lechuza" aria-hidden="true">
+      <svg viewBox="0 0 120 90">
+        <g class="ala ala-izq"><path d="M48 44 C30 26 12 24 2 30 C14 34 22 42 30 52 Z" fill="#8a6a4c"/><path d="M40 44 C28 34 16 32 8 34" stroke="#5e4532" stroke-width="2" fill="none"/></g>
+        <g class="ala ala-der"><path d="M72 44 C90 26 108 24 118 30 C106 34 98 42 90 52 Z" fill="#8a6a4c"/><path d="M80 44 C92 34 104 32 112 34" stroke="#5e4532" stroke-width="2" fill="none"/></g>
+        <ellipse cx="60" cy="50" rx="17" ry="21" fill="#a3825f"/>
+        <ellipse cx="60" cy="56" rx="11" ry="14" fill="#e9d8bc"/>
+        <path d="M54 52l3 3M60 54l3 3M57 60l3 3M63 60l2 2" stroke="#a3825f" stroke-width="1.6"/>
+        <circle cx="60" cy="31" r="14" fill="#a3825f"/>
+        <path d="M47 22l4 7M73 22l-4 7" stroke="#8a6a4c" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="54" cy="31" r="5.5" fill="#f6e7c4"/><circle cx="66" cy="31" r="5.5" fill="#f6e7c4"/>
+        <circle cx="54" cy="31" r="3" fill="#2a1d14"/><circle cx="66" cy="31" r="3" fill="#2a1d14"/>
+        <circle cx="55" cy="30" r="1" fill="#fff"/><circle cx="67" cy="30" r="1" fill="#fff"/>
+        <path d="M58 35l2 4 2-4z" fill="#e0a54a"/>
+        <!-- carta en las patas -->
+        <g transform="translate(48 68) rotate(-6)">
+          <rect width="24" height="16" rx="1.5" fill="#efdcb2"/>
+          <path d="M0 0l12 9 12-9" stroke="#c9a96f" fill="none"/>
+          <circle cx="12" cy="9" r="3.4" fill="#8e1f2a"/>
+        </g>
+      </svg>
+    </div>
+
+    <header class="cabecera revelar">
+      <p class="pre-titulo">✦ hoy el cielo brilla por ti ✦</p>
+      <h2 id="titulo" class="titulo"></h2>
+      <p id="fecha" class="fecha"></p>
+    </header>
+
+    <!-- Contador -->
+    <section id="contador" class="tarjeta-magica contador revelar">
+      <p class="etiqueta">Hechizo del tiempo · juntos desde <span id="desde"></span></p>
+      <div class="contador-grid">
+        <div><span id="cAnios">0</span><small>años</small></div>
+        <div><span id="cMeses">0</span><small>meses</small></div>
+        <div><span id="cDias">0</span><small>días</small></div>
+      </div>
+      <p class="contador-sub"><span id="cTotal">0</span> días eligiéndote ✦</p>
+    </section>
+
+    <section class="polaroid-zona revelar">
+      <p class="etiqueta">Capítulo I · Nuestra historia</p>
+      <div class="polaroid" data-carrusel="historia">
+        <div class="carrusel"></div>
+        <p class="fecha-foto"></p>
+        <p class="pie-foto"></p>
+        <div class="puntos"></div>
+      </div>
+      <p class="ayuda">desliza o toca para ver más</p>
+    </section>
+
+    <!-- Gia y papi -->
+    <section id="hija" class="hija revelar">
+      <div class="hija-papel">
+        <p class="hija-de">Un mensaje de <span data-hija-nombre></span> y papi</p>
+        <div class="hija-foto"><img id="hijaFoto" alt="Gia y papi" /></div>
+        <p id="hijaMsg" class="hija-msg"></p>
+        <p id="hijaFirma" class="hija-firma"></p>
+      </div>
+    </section>
+
+    <section class="polaroid-zona revelar">
+      <p class="etiqueta">Capítulo II · Y la magia creció</p>
+      <div class="polaroid" data-carrusel="familia">
+        <div class="carrusel"></div>
+        <p class="fecha-foto"></p>
+        <p class="pie-foto"></p>
+        <div class="puntos"></div>
+      </div>
+      <p class="ayuda">desliza o toca para ver más</p>
+    </section>
+
+    <div class="separador revelar" aria-hidden="true">✦ ✦ ✦</div>
+
+    <!-- Sobre -->
+    <section class="sobre-zona revelar">
+      <p class="etiqueta">Una lechuza te trajo esto</p>
+      <div id="sobre" class="sobre">
+        <div class="sobre-fondo"></div>
+        <div class="sobre-carta-asoma"><span>Para Karel…</span></div>
+        <div class="sobre-frente"></div>
+        <div class="sobre-solapa"></div>
+        <button id="sello" class="sello" aria-label="Abrir carta"><span id="selloInicial"></span></button>
+      </div>
+      <p class="ayuda">Toca el sello y la carta se abrirá sola</p>
+    </section>
+
+    <!-- Poción -->
+    <section id="pocion" class="pocion-zona revelar">
+      <h3 class="sub-titulo">La poción de tu cumpleaños</h3>
+      <button id="caldero" class="caldero" aria-label="Remover la poción">
+        <svg viewBox="0 0 160 140" aria-hidden="true">
+          <g class="burbujas">
+            <circle cx="62" cy="40" r="6"/><circle cx="84" cy="30" r="4"/><circle cx="98" cy="44" r="7"/><circle cx="74" cy="20" r="3"/>
+          </g>
+          <ellipse cx="80" cy="56" rx="56" ry="12" fill="#3a2a4f"/>
+          <ellipse id="liquido" cx="80" cy="56" rx="48" ry="8" fill="#b06bd6"/>
+          <path d="M24 58c0 40 22 62 56 62s56-22 56-62" fill="#1d1b26"/>
+          <path d="M34 70c4 26 20 40 46 40" stroke="#3b3850" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <path d="M44 118l-8 14M116 118l8 14" stroke="#1d1b26" stroke-width="8" stroke-linecap="round"/>
+          <rect x="18" y="52" width="124" height="10" rx="5" fill="#2b2838"/>
+        </svg>
+      </button>
+      <p class="ayuda" id="ayudaPocion">Toca el caldero para remover la poción</p>
+      <ul id="ingredientes" class="ingredientes"></ul>
+      <p id="pocionResultado" class="pocion-resultado"></p>
+    </section>
+
+    <!-- Pastel -->
+    <section id="pastelZona" class="pastel-zona revelar">
+      <h3 class="sub-titulo">Pide un deseo</h3>
+      <p class="ayuda" id="ayudaVelas">Sopla las velas y deja que la magia haga el resto</p>
+      <div class="pastel">
+        <div id="velas" class="velas"></div>
+        <div class="pastel-capa capa-arriba"></div>
+        <div class="pastel-capa capa-medio"></div>
+        <div class="pastel-capa capa-abajo"></div>
+        <div class="plato"></div>
+      </div>
+      <div class="botones-velas">
+        <button id="btnSoplar" class="boton">🌬️ Soplar de verdad</button>
+        <p class="ayuda mini">o toca cada llama para apagarla</p>
+      </div>
+    </section>
+
+    <!-- Final -->
+    <section id="final" class="final">
+      <p class="final-mini">✦ ✦ ✦</p>
+      <h3 id="finalTitulo" class="final-titulo"></h3>
+      <p id="finalTexto" class="final-texto"></p>
+      <p id="finalFirma" class="final-firma"></p>
+      <button id="btnRepetir" class="boton boton-suave">Volver a vivir la magia ↺</button>
+    </section>
+
+    <footer class="pie">hecho con amor y un poquito de magia</footer>
+  </main>
+
+  <!-- ============ CARTA ABIERTA ============ -->
+  <div id="modalCarta" class="modal" aria-hidden="true">
+    <div class="carta">
+      <button id="cerrarCarta" class="cerrar" aria-label="Cerrar">×</button>
+      <p class="carta-saludo" id="cartaSaludo"></p>
+      <div id="cartaTexto" class="carta-texto"></div>
+      <p id="cartaFirma" class="carta-firma"></p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

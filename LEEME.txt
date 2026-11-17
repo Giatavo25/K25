@@ -1,0 +1,24 @@
+SORPRESA MÁGICA PARA KAREL - PASOS
+
+1) FOTOS (ya están puestas)
+   Capítulo I "Nuestra historia": fotos/h01.jpg a h09.jpg (2021-2022).
+   Mensaje de Gia y papi: fotos/gia-y-papi.jpg.
+   Capítulo II "Y la magia creció": fotos/f01.jpg a f05.jpg (con Gia, hasta la más reciente).
+   Para cambiar el orden o las frases, edita CONFIG.fotos y CONFIG.fotosFamilia en script.js.
+
+2) MÚSICA (SanLuis)
+   Pon las canciones en /musica con los nombres cancion1.mp3 y cancion2.mp3.
+   Suenan una tras otra desde el primer toque al corazón. Puedes poner solo una.
+
+3) TEXTOS
+   Todo está ya escrito (carta, mensaje de Gia, poción, final). Si quieres cambiar algo,
+   edita solo el bloque CONFIG al inicio de script.js.
+
+4) PUBLICAR (gratis con GitHub Pages)
+   Crea un repositorio (ej: "karel"), sube TODO, ve a Settings > Pages > Branch: main / root > Save.
+   El link queda así: https://TUUSUARIO.github.io/karel/
+   El botón "Soplar de verdad" (micrófono) solo funciona ya publicado (https).
+
+5) TARJETA QR
+   Abre tarjeta.html, pega el link, "Generar tarjeta" e "Imprimir".
+   Escanéala tú antes de dársela.
