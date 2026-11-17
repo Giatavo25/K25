@@ -244,7 +244,8 @@ const Musica = (() => {
   const audio = $("#audio"), btn = $("#btnMusica");
   const lista = (Array.isArray(CONFIG.musica) ? CONFIG.musica : [CONFIG.musica]).filter(Boolean);
   let i = 0, fallos = 0;
-  if (!lista.length) return { play() {} };
+  let objetivo = .75;
+  if (!lista.length) return { play() {}, bajar() {}, subir() {} };
   audio.src = lista[0];
   audio.addEventListener("ended", () => { i = (i + 1) % lista.length; audio.src = lista[i]; audio.play().catch(() => {}); });
   audio.addEventListener("error", () => {
@@ -260,9 +261,12 @@ const Musica = (() => {
       audio.volume = 0;
       audio.play().then(() => {
         btn.classList.remove("oculto"); btn.classList.add("sonando");
-        let v = 0; const t = setInterval(() => { v += .04; audio.volume = Math.min(.75, v); if (v >= .75) clearInterval(t); }, 150);
+        let v = 0; const t = setInterval(() => { v += .04; audio.volume = Math.min(objetivo, v); if (v >= .75) clearInterval(t); }, 150);
       }).catch(() => {});
-    }
+    },
+    // baja la música mientras ella sopla, para que el micrófono la escuche a ella
+    bajar() { objetivo = .12; audio.volume = Math.min(audio.volume, objetivo); },
+    subir() { objetivo = .75; audio.volume = objetivo; }
   };
 })();
 
@@ -462,7 +466,9 @@ if (CONFIG.hija && CONFIG.hija.nombre) {
 /* ---------- pastel ---------- */
 (() => {
   const cont = $("#velas"), btn = $("#btnSoplar"), ayuda = $("#ayudaVelas");
-  let encendidas = CONFIG.velas, acabado = false, stream = null, ctxAudio = null;
+  const medidor = $("#medidor"), medRelleno = $("#medidorRelleno"), medLinea = $("#medidorLinea");
+  let encendidas = CONFIG.velas, acabado = false, stream = null, ctxAudio = null, escuchando = false;
+
   for (let i = 0; i < CONFIG.velas; i++) {
     const v = document.createElement("div");
     v.className = "vela"; v.innerHTML = '<div class="llama"></div>';
@@ -470,9 +476,15 @@ if (CONFIG.hija && CONFIG.hija.nombre) {
     v.addEventListener("click", () => apagar(v));
     cont.appendChild(v);
   }
+  // las llamas tiemblan cuando detecta aire
+  const temblar = (k) => cont.querySelectorAll(".vela:not(.apagada) .llama").forEach(l => {
+    l.style.transform = `translateX(-50%) rotate(${(Math.random() - .5) * 40 * k}deg) scaleY(${1 - .35 * k})`;
+  });
+
   function apagar(v) {
     if (v.classList.contains("apagada")) return;
     v.classList.add("apagada");
+    v.querySelector(".llama").style.transform = "";
     const h = document.createElement("div"); h.className = "humo"; v.appendChild(h);
     setTimeout(() => h.remove(), 1700);
     vibrar(25);
@@ -480,7 +492,7 @@ if (CONFIG.hija && CONFIG.hija.nombre) {
   }
   function celebrar() {
     if (acabado) return; acabado = true;
-    pararMic(); btn.style.display = "none";
+    pararMic(); btn.style.display = "none"; medidor.classList.remove("on");
     ayuda.textContent = "¡Deseo concedido! ✨";
     hechizo("¡Feliz cumpleaños!");
     vibrar([80, 50, 80, 50, 300]);
@@ -491,33 +503,88 @@ if (CONFIG.hija && CONFIG.hija.nombre) {
     setTimeout(() => { $("#final").classList.add("on"); $("#final").scrollIntoView({ behavior: "smooth", block: "center" }); }, 1800);
   }
   function pararMic() {
+    escuchando = false;
     if (stream) stream.getTracks().forEach(t => t.stop());
     if (ctxAudio) ctxAudio.close().catch(() => {});
-    stream = ctxAudio = null; btn.classList.remove("escuchando");
+    stream = ctxAudio = null;
+    btn.classList.remove("escuchando");
+    temblar(0);
+    Musica.subir();
   }
+
   btn.addEventListener("click", async () => {
-    if (stream) { pararMic(); btn.textContent = "🌬️ Soplar de verdad"; return; }
-    try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
-    catch (e) { ayuda.textContent = "No pude usar el micrófono: toca las llamas 🔥"; return; }
-    ctxAudio = new (window.AudioContext || window.webkitAudioContext)();
-    const an = ctxAudio.createAnalyser(); an.fftSize = 512;
+    if (escuchando) { pararMic(); btn.textContent = "🌬️ Soplar de verdad"; medidor.classList.remove("on"); return; }
+
+    // 1) El audio se crea EN EL MISMO TOQUE (si no, el teléfono lo deja en pausa)
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC || !navigator.mediaDevices) { ayuda.textContent = "Este teléfono no deja usar el micrófono: toca las llamas 🔥"; return; }
+    ctxAudio = new AC();
+    ctxAudio.resume && ctxAudio.resume();
+
+    // 2) Micrófono SIN filtro anti-ruido (ese filtro borraba el soplido)
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+      });
+    } catch (e) {
+      try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+      catch (e2) { ctxAudio.close(); ctxAudio = null; ayuda.textContent = "Sin permiso del micrófono: toca las llamas 🔥"; return; }
+    }
+    if (ctxAudio.state !== "running") { try { await ctxAudio.resume(); } catch (e) {} }
+
+    Musica.bajar();
+    const an = ctxAudio.createAnalyser();
+    an.fftSize = 1024; an.smoothingTimeConstant = .2;
     ctxAudio.createMediaStreamSource(stream).connect(an);
-    const datos = new Uint8Array(an.fftSize);
-    btn.classList.add("escuchando"); btn.textContent = "Sopla al micrófono…";
-    ayuda.textContent = "¡Sopla fuerte!";
-    let fuerte = 0;
-    (function oir() {
-      if (!stream) return;
-      an.getByteTimeDomainData(datos);
-      let s = 0; for (const d of datos) { const x = (d - 128) / 128; s += x * x; }
-      if (Math.sqrt(s / datos.length) > .12) {
-        if (++fuerte % 6 === 0) {
+    const frec = new Uint8Array(an.frequencyBinCount), onda = new Uint8Array(an.fftSize);
+    const binMax = Math.max(4, Math.round(2000 / (ctxAudio.sampleRate / an.fftSize))); // graves (< 2 kHz): ahí vive el soplido
+
+    escuchando = true;
+    btn.classList.add("escuchando"); btn.textContent = "Escuchando… (toca para parar)";
+    ayuda.textContent = "Un segundito…";
+    medidor.classList.add("on");
+
+    const nivel = () => {
+      an.getByteFrequencyData(frec);
+      let f = 0; for (let k = 1; k < binMax; k++) f += frec[k];
+      f /= (binMax - 1);
+      an.getByteTimeDomainData(onda);
+      let r = 0; for (const d of onda) { const x = (d - 128) / 128; r += x * x; }
+      r = Math.sqrt(r / onda.length);
+      return Math.max(f / 255, Math.min(1, r * 4));   // 0 … 1
+    };
+
+    // 3) Calibra el ruido del lugar durante ~0.7 s y ajusta la sensibilidad sola
+    let piso = 0, n = 0;
+    const t0 = performance.now();
+    while (performance.now() - t0 < 700 && escuchando) {
+      piso += nivel(); n++;
+      await new Promise(r => requestAnimationFrame(r));
+    }
+    if (!escuchando) return;
+    piso = n ? piso / n : 0;
+    const umbral = Math.min(.85, Math.max(piso + .12, piso * 1.5, .18));
+    medLinea.style.left = (umbral * 100) + "%";
+    ayuda.textContent = "¡Ahora sopla fuerte cerca del micrófono! 🌬️";
+
+    let acumulado = 0, previo = performance.now();
+    (function oir(t) {
+      if (!escuchando) return;
+      const dt = t - previo; previo = t;
+      const v = nivel();
+      medRelleno.style.width = Math.min(100, v * 100) + "%";
+      medRelleno.classList.toggle("fuerte", v > umbral);
+      if (v > umbral) {
+        acumulado += dt;
+        temblar(Math.min(1, (v - umbral) / .2 + .3));
+        if (acumulado > 160) {          // cada ~0.16 s de soplido apaga una vela
+          acumulado = 0;
           const vivas = [...cont.querySelectorAll(".vela:not(.apagada)")];
           if (vivas.length) apagar(vivas[Math.random() * vivas.length | 0]);
         }
-      } else fuerte = Math.max(0, fuerte - 1);
+      } else { acumulado = Math.max(0, acumulado - dt * .5); temblar(0); }
       requestAnimationFrame(oir);
-    })();
+    })(performance.now());
   });
 })();
 

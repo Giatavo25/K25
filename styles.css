@@ -414,6 +414,15 @@ body:not(.oscuro) .velas-flotantes { opacity: .55; }
 .capa-abajo::after { content: ""; position: absolute; left: 0; right: 0; top: 22px; height: 6px; background: repeating-linear-gradient(90deg, var(--oro) 0 8px, transparent 8px 14px); opacity: .8; }
 .plato { width: 260px; height: 14px; margin: -2px auto 0; background: linear-gradient(#e9d9b4, #b99a5c); border-radius: 50%; box-shadow: 0 8px 20px rgba(0,0,0,.4); transform: translateX(-20px); }
 .botones-velas { margin-top: 24px; }
+.medidor {
+  position: relative; width: 220px; height: 8px; margin: 14px auto 0;
+  border-radius: 99px; background: rgba(255,255,255,.1); border: 1px solid rgba(212,162,76,.35);
+  overflow: hidden; display: none;
+}
+.medidor.on { display: block; }
+.medidor-relleno { height: 100%; width: 0; background: linear-gradient(90deg, #6d8bd6, #c98ae8); transition: width .08s linear; }
+.medidor-relleno.fuerte { background: linear-gradient(90deg, var(--oro), var(--oro-claro)); box-shadow: 0 0 10px var(--oro-claro); }
+.medidor-linea { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--oro-claro); left: 50%; }
 
 .boton {
   display: inline-block; padding: 12px 24px; border-radius: 99px;
