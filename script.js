@@ -85,8 +85,8 @@ Feliz cumpleaños, Karel. Eres mi persona favorita en este mundo y en cualquier 
   finalTexto: "Que todo lo que deseaste se haga realidad.\nHoy celebramos tu vida, y yo celebro tenerte en la mía.",
   finalFirma: "Hoy, mañana y siempre ✦",
 
-  // Música: pon los .mp3 en /musica. Suenan en orden y vuelven a empezar.
-  musica: ["musica/cancion1.mp3", "musica/cancion2.mp3"]
+  // Música: SanLuis – "Dónde andabas tú" (ya recortada: empieza en el segundo 23 de la original)
+  musica: ["musica/cancion1.mp3"]
 };
 /* ================= FIN DE LO EDITABLE ================= */
 
@@ -247,7 +247,7 @@ const Musica = (() => {
   let objetivo = .75;
   if (!lista.length) return { play() {}, bajar() {}, subir() {} };
   audio.src = lista[0];
-  audio.addEventListener("ended", () => { i = (i + 1) % lista.length; audio.src = lista[i]; audio.play().catch(() => {}); });
+  audio.addEventListener("ended", () => { i = (i + 1) % lista.length; if (lista.length > 1) audio.src = lista[i]; else audio.currentTime = 0; audio.play().catch(() => {}); });
   audio.addEventListener("error", () => {
     fallos++;
     if (fallos >= lista.length) { btn.classList.add("oculto"); return; }
